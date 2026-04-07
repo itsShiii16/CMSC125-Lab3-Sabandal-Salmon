@@ -27,6 +27,34 @@ This separation ensures:
 - High readability and maintainability  
 - Easier debugging and testing  
 
+### 2.2 Module Responsibilities
+
+- bank - handles account state and money operations
+- transaction - handles per-transaction execution
+- timer - manages simulation time
+- lock_mgr - enforces lock ordering
+- buffer_pool - manages bounded account loading
+- metrics reports - performance and correctness
+- parser - loads input files
+
+### 2.3 System Interface
+
+- bank.h / bank.c 
+account and bank structures, deposit, withdraw, balance, transfer
+- transaction.h / transaction.c
+transaction structs, operation enums, transaction thread execution
+- timer.h / timer.c
+global tick, timer thread, wait-until-tick logic
+- lock_mgr.h / lock_mgr.c
+lock ordering helpers for transfer deadlock prevention
+- buffer_pool.h / buffer_pool.c
+bounded buffer structs, init/load/unload helpers
+- metrics.h / metrics.c
+transaction stats, throughput, summary printing
+- parser.h / parser.c
+accounts file parser, trace parser
+- utils.h / utils.c
+generic helpers only
 ---
 
 ### 2.2 Thread Model
