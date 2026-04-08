@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <pthread.h>
 
 #include "bank.h"
@@ -94,9 +93,6 @@ static bool parse_args(int argc, char *argv[], Config *config) {
  * - initializes account locks
  * - parses transactions
  * - initializes timer
- *
- * For Phase 1 this is enough to validate structure and parsing.
- * Thread creation and full execution can be extended in the next phase.
  */
 int main(int argc, char *argv[]) {
     Config config;
@@ -128,21 +124,30 @@ int main(int argc, char *argv[]) {
 
     init_timer();
 
-    /*
-     * Phase 1 note:
-     * We stop here after verifying setup and parsing.
-     * next phase, this will be extended to:
-     * - start timer thread
-     * - create transaction threads
-     * - join threads
-     * - print metrics and summary
-     */
-    printf("BankDB setup successful.\n");
-    printf("Loaded %d account(s).\n", bank.num_accounts);
-    printf("Loaded %d transaction(s).\n", num_transactions);
-    printf("Deadlock mode: %s\n", config.deadlock_mode);
-    printf("Tick interval: %d ms\n", tick_interval_ms);
-    printf("Verbose mode: %s\n", verbose_mode ? "ON" : "OFF");
+    // Start the timer thread to increment the global tick
+    pthread_t timer_thread_id;
+    simulation_running = true;
+    pthread_create(&timer_thread_id, NULL, timer_thread, NULL);
+
+    // Start transaction threads
+    pthread_t transaction_threads[num_transactions];
+    for (int i = 0; i < num_transactions; i++) {
+        pthread_create(&transaction_threads[i], NULL, execute_transaction, &transactions[i]);
+    }
+
+    // Wait for all transaction threads to finish
+    for (int i = 0; i < num_transactions; i++) {
+        pthread_join(transaction_threads[i], NULL);
+    }
+
+    // Stop timer thread
+    simulation_running = false;
+    pthread_join(timer_thread_id, NULL);
+
+    // Print metrics and summary
+    print_summary(transactions, num_transactions, global_tick);
+    print_transaction_metrics(transactions, num_transactions);
+    print_buffer_pool_report(&bank);
 
     destroy_timer();
     destroy_account_locks(&bank);

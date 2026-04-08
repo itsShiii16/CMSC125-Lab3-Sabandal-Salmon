@@ -1,9 +1,11 @@
 #include "transaction.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "bank.h"
+#include "lock_mgr.h"
 #include "timer.h"
 #include "utils.h"
 
@@ -143,16 +145,11 @@ bool add_operation_to_transaction(
 /*
  * Thread entry point for executing a single transaction.
  *
- * Current starter behavior:
- * - waits until scheduled start tick
- * - records timing
- * - executes each operation in order
- * - commits on success
- * - aborts on failed withdraw/transfer
- *
- * NOTE:
- * This implementation assumes a global/shared Bank will later be made accessible.
- * For now, it references an external global bank instance.
+ * The logic performs each operation sequentially in a transaction:
+ * - waits until the scheduled start tick
+ * - records the start time
+ * - executes each operation (deposit, withdraw, transfer, balance inquiry)
+ * - commits or aborts based on success/failure
  */
 extern Bank bank;
 
