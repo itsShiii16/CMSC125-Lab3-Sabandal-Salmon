@@ -167,16 +167,16 @@ Without the timer:
 
 The system records:
 - Transaction start and end times  
-- Wait time due to lock contention  
+- Wait time from scheduled start to actual start (tick-based)  
 - Throughput (transactions per tick)  
 - Buffer pool usage statistics  
+- Buffer pool blocked-load count  
 
 ---
 
 ## 9. Correctness Guarantees
 
 The system ensures:
-- No race conditions (validated via ThreadSanitizer)  
 - No deadlocks (via prevention strategy)  
 - Conservation of total money across all accounts  
 
@@ -189,6 +189,11 @@ The system ensures:
 - Buffer pool introduces controlled contention  
 - Tick-based scheduling enables consistent benchmarking  
 
+## 10.1 Test Evidence
+
+- Manual test outputs are saved in docs/test_outputs_2026-05-13.txt
+- ThreadSanitizer outputs are saved in docs/tsan_outputs_2026-05-13.txt
+
 ---
 
 ## 11. Limitations
@@ -197,6 +202,7 @@ The system ensures:
 - Fixed buffer pool size  
 - No advanced buffer replacement strategies (e.g., LRU)  
 - Deadlock detection strategy not implemented  
+- ThreadSanitizer failed in this environment with "unexpected memory mapping"
 
 ---
 
