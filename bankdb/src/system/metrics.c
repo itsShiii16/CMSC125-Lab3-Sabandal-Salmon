@@ -2,8 +2,11 @@
 
 #include <stdio.h>
 
+#include "lock_mgr.h"
+
 /*
  * Prints a compact summary of transaction outcomes and runtime.
+ * Synchronization: reads immutable transaction results after joins complete.
  */
 void print_summary(Transaction *transactions, int num_transactions, int total_ticks) {
     int committed = 0;
@@ -34,6 +37,7 @@ void print_summary(Transaction *transactions, int num_transactions, int total_ti
 
 /*
  * Prints per-transaction timing and final status.
+ * Synchronization: reads immutable transaction results after joins complete.
  */
 void print_transaction_metrics(Transaction *transactions, int num_transactions) {
     if (transactions == NULL || num_transactions < 0) {
@@ -57,6 +61,7 @@ void print_transaction_metrics(Transaction *transactions, int num_transactions) 
 
 /*
  * Computes the average wait ticks across all transactions.
+ * Synchronization: reads immutable transaction results after joins complete.
  */
 double compute_average_wait(Transaction *transactions, int num_transactions) {
     long total_wait = 0;
@@ -74,6 +79,7 @@ double compute_average_wait(Transaction *transactions, int num_transactions) {
 
 /*
  * Computes transaction throughput as completed transactions per tick.
+ * Synchronization: no shared state is accessed.
  */
 double compute_throughput(int total_transactions, int total_ticks) {
     if (total_transactions <= 0 || total_ticks <= 0) {
@@ -84,13 +90,14 @@ double compute_throughput(int total_transactions, int total_ticks) {
 }
 
 /*
- * Prints buffer pool statistics when Phase 3 provides a real pool.
+ * Prints buffer pool statistics.
+ * Synchronization: called after transaction threads have joined, so stats are stable.
  */
 void print_buffer_pool_report(BufferPool *pool) {
     printf("\n=== Buffer Pool Report ===\n");
 
     if (pool == NULL) {
-        printf("Buffer pool integration is deferred to Phase 3.\n");
+        printf("No buffer pool statistics available.\n");
         return;
     }
 
@@ -102,6 +109,7 @@ void print_buffer_pool_report(BufferPool *pool) {
 
 /*
  * Compares initial and final total balances for a basic consistency check.
+ * Synchronization: compute_total_balance uses account read locks.
  */
 void verify_balance_conservation(Bank *bank, long initial_total) {
     long final_total;
@@ -119,6 +127,26 @@ void verify_balance_conservation(Bank *bank, long initial_total) {
     if (initial_total == final_total) {
         printf("Result        : PASS\n");
     } else {
-        printf("Result        : CHANGED by deposits/withdrawals or failed conservation\n");
+        printf("Result        : WARN - total changed by deposits/withdrawals\n");
     }
+}
+
+/*
+ * Computes the total balance across all accounts.
+ * Synchronization: each account is protected with its reader lock while read.
+ */
+long compute_total_balance(Bank *bank) {
+    long total = 0;
+
+    if (bank == NULL) {
+        return 0;
+    }
+
+    for (int i = 0; i < bank->num_accounts; i++) {
+        read_lock_account(&bank->accounts[i]);
+        total += bank->accounts[i].balance_centavos;
+        read_unlock_account(&bank->accounts[i]);
+    }
+
+    return total;
 }

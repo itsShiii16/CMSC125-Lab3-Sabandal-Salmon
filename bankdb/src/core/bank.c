@@ -168,26 +168,6 @@ bool transfer(Bank *bank, int from_id, int to_id, int amount_centavos) {
 }
 
 /*
- * Computes the total balance across all accounts.
- * Used later for conservation checking.
- */
-long compute_total_balance(Bank *bank) {
-    if (bank == NULL) {
-        return 0;
-    }
-
-    long total = 0;
-
-    for (int i = 0; i < bank->num_accounts; i++) {
-        read_lock_account(&bank->accounts[i]);
-        total += bank->accounts[i].balance_centavos;
-        read_unlock_account(&bank->accounts[i]);
-    }
-
-    return total;
-}
-
-/*
  * Initializes all per-account reader-writer locks.
  * Should be called after accounts have been loaded.
  */

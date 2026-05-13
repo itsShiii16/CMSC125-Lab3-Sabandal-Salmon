@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "bank.h"
+#include "buffer_pool.h"
 #include "metrics.h"
 #include "parser.h"
 #include "timer.h"
@@ -16,6 +17,12 @@
  *   extern Bank bank;
  */
 Bank bank;
+
+/*
+ * Global bounded buffer pool.
+ * transaction.c uses this through extern BufferPool buffer_pool.
+ */
+BufferPool buffer_pool;
 
 /*
  * Stores command-line configuration.
@@ -77,7 +84,7 @@ static bool parse_args(int argc, char *argv[], Config *config) {
     }
 
     if (strcmp(config->deadlock_mode, "prevention") != 0) {
-        fprintf(stderr, "Only deadlock prevention is supported in Phase 2.\n");
+        fprintf(stderr, "Unsupported deadlock mode: only prevention is supported.\n");
         return false;
     }
 
@@ -96,7 +103,7 @@ static bool parse_args(int argc, char *argv[], Config *config) {
  * - parses transactions
  * - initializes timer
  * - runs one thread per transaction
- * - prints Phase 2 metrics and cleans up resources
+ * - prints metrics and cleans up resources
  */
 int main(int argc, char *argv[]) {
     Config config;
@@ -130,6 +137,7 @@ int main(int argc, char *argv[]) {
         goto cleanup_bank;
     }
 
+    init_buffer_pool(&buffer_pool);
     init_timer();
 
     /* Start the timer thread to increment the global tick. */
@@ -167,16 +175,17 @@ int main(int argc, char *argv[]) {
         pthread_join(timer_thread_id, NULL);
     }
 
-    /* Print the Phase 2 execution summary. */
+    /* Print the execution summary and buffer pool report. */
     print_summary(transactions, num_transactions, global_tick);
     print_transaction_metrics(transactions, num_transactions);
-    print_buffer_pool_report(NULL);
+    print_buffer_pool_report(&buffer_pool);
     verify_balance_conservation(&bank, initial_total);
 
     exit_code = EXIT_SUCCESS;
 
 cleanup_timer:
     destroy_timer();
+    destroy_buffer_pool(&buffer_pool);
 cleanup_bank:
     destroy_account_locks(&bank);
 

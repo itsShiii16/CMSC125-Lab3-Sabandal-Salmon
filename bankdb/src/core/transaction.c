@@ -5,9 +5,12 @@
 #include <string.h>
 
 #include "bank.h"
+#include "buffer_pool.h"
 #include "lock_mgr.h"
 #include "timer.h"
 #include "utils.h"
+
+#define MAX_LOADED_ACCOUNTS_PER_TX (MAX_OPS_PER_TX * 2)
 
 /*
  * Converts a string such as "DEPOSIT" into the matching OpType.
@@ -152,6 +155,104 @@ bool add_operation_to_transaction(
  * - commits or aborts based on success/failure
  */
 extern Bank bank;
+extern BufferPool buffer_pool;
+
+/*
+ * Records the current global tick as a transaction's end time.
+ * Synchronization: tick_lock protects reads from the shared global timer.
+ */
+static void record_transaction_end(Transaction *tx) {
+    if (tx == NULL) {
+        return;
+    }
+
+    pthread_mutex_lock(&tick_lock);
+    tx->actual_end = global_tick;
+    pthread_mutex_unlock(&tick_lock);
+}
+
+/*
+ * Checks whether a transaction has already loaded an account.
+ * Synchronization: the loaded account list is local to one transaction thread.
+ */
+static bool transaction_has_loaded_account(
+    int *loaded_accounts,
+    int loaded_count,
+    int account_id
+) {
+    for (int i = 0; i < loaded_count; i++) {
+        if (loaded_accounts[i] == account_id) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/*
+ * Loads one account into the buffer pool for the current transaction.
+ * Synchronization: buffer pool internals use semaphores and a mutex; this helper
+ * only updates the transaction-local list after a successful load.
+ */
+static bool load_account_for_transaction(
+    int *loaded_accounts,
+    int *loaded_count,
+    int account_id
+) {
+    Account *account;
+
+    if (loaded_accounts == NULL || loaded_count == NULL) {
+        return false;
+    }
+
+    if (transaction_has_loaded_account(loaded_accounts, *loaded_count, account_id)) {
+        return true;
+    }
+
+    if (*loaded_count >= MAX_LOADED_ACCOUNTS_PER_TX) {
+        return false;
+    }
+
+    account = get_account(&bank, account_id);
+    if (account == NULL) {
+        return false;
+    }
+
+    load_account(&buffer_pool, account);
+    loaded_accounts[*loaded_count] = account_id;
+    (*loaded_count)++;
+
+    return true;
+}
+
+/*
+ * Unloads all accounts loaded by a transaction.
+ * Synchronization: each unload updates shared buffer pool state under its mutex.
+ */
+static void unload_transaction_accounts(int *loaded_accounts, int loaded_count) {
+    for (int i = loaded_count - 1; i >= 0; i--) {
+        unload_account(&buffer_pool, loaded_accounts[i]);
+    }
+}
+
+/*
+ * Aborts a transaction, records its end tick, and releases loaded accounts.
+ * Synchronization: timer and buffer pool helpers handle their own shared state.
+ */
+static void abort_transaction(
+    Transaction *tx,
+    int *loaded_accounts,
+    int loaded_count,
+    const char *message
+) {
+    tx->status = TX_ABORTED;
+    record_transaction_end(tx);
+    unload_transaction_accounts(loaded_accounts, loaded_count);
+
+    if (message != NULL) {
+        debug_log("T%d: %s\n", tx->tx_id, message);
+    }
+}
 
 void *execute_transaction(void *arg) {
     if (arg == NULL) {
@@ -159,6 +260,8 @@ void *execute_transaction(void *arg) {
     }
 
     Transaction *tx = (Transaction *) arg;
+    int loaded_accounts[MAX_LOADED_ACCOUNTS_PER_TX];
+    int loaded_count = 0;
 
     /* Wait until the transaction's scheduled start tick */
     wait_until_tick(tx->start_tick);
@@ -179,20 +282,29 @@ void *execute_transaction(void *arg) {
 
         switch (op->type) {
             case OP_DEPOSIT:
+                if (!load_account_for_transaction(loaded_accounts, &loaded_count,
+                                                  op->account_id)) {
+                    abort_transaction(tx, loaded_accounts, loaded_count,
+                                      "DEPOSIT account load failed, transaction aborted");
+                    return NULL;
+                }
+
                 deposit(&bank, op->account_id, op->amount_centavos);
                 debug_log("T%d: DEPOSIT acc=%d amount=%d\n",
                           tx->tx_id, op->account_id, op->amount_centavos);
                 break;
 
             case OP_WITHDRAW:
+                if (!load_account_for_transaction(loaded_accounts, &loaded_count,
+                                                  op->account_id)) {
+                    abort_transaction(tx, loaded_accounts, loaded_count,
+                                      "WITHDRAW account load failed, transaction aborted");
+                    return NULL;
+                }
+
                 if (!withdraw(&bank, op->account_id, op->amount_centavos)) {
-                    tx->status = TX_ABORTED;
-
-                    pthread_mutex_lock(&tick_lock);
-                    tx->actual_end = global_tick;
-                    pthread_mutex_unlock(&tick_lock);
-
-                    debug_log("T%d: WITHDRAW failed, transaction aborted\n", tx->tx_id);
+                    abort_transaction(tx, loaded_accounts, loaded_count,
+                                      "WITHDRAW failed, transaction aborted");
                     return NULL;
                 }
 
@@ -201,15 +313,19 @@ void *execute_transaction(void *arg) {
                 break;
 
             case OP_TRANSFER:
+                if (!load_account_for_transaction(loaded_accounts, &loaded_count,
+                                                  op->account_id) ||
+                    !load_account_for_transaction(loaded_accounts, &loaded_count,
+                                                  op->target_account)) {
+                    abort_transaction(tx, loaded_accounts, loaded_count,
+                                      "TRANSFER account load failed, transaction aborted");
+                    return NULL;
+                }
+
                 if (!transfer(&bank, op->account_id, op->target_account,
                               op->amount_centavos)) {
-                    tx->status = TX_ABORTED;
-
-                    pthread_mutex_lock(&tick_lock);
-                    tx->actual_end = global_tick;
-                    pthread_mutex_unlock(&tick_lock);
-
-                    debug_log("T%d: TRANSFER failed, transaction aborted\n", tx->tx_id);
+                    abort_transaction(tx, loaded_accounts, loaded_count,
+                                      "TRANSFER failed, transaction aborted");
                     return NULL;
                 }
 
@@ -219,16 +335,18 @@ void *execute_transaction(void *arg) {
                 break;
 
             case OP_BALANCE: {
+                if (!load_account_for_transaction(loaded_accounts, &loaded_count,
+                                                  op->account_id)) {
+                    abort_transaction(tx, loaded_accounts, loaded_count,
+                                      "BALANCE account load failed, transaction aborted");
+                    return NULL;
+                }
+
                 int balance = get_balance(&bank, op->account_id);
 
                 if (balance < 0) {
-                    tx->status = TX_ABORTED;
-
-                    pthread_mutex_lock(&tick_lock);
-                    tx->actual_end = global_tick;
-                    pthread_mutex_unlock(&tick_lock);
-
-                    debug_log("T%d: BALANCE failed, transaction aborted\n", tx->tx_id);
+                    abort_transaction(tx, loaded_accounts, loaded_count,
+                                      "BALANCE failed, transaction aborted");
                     return NULL;
                 }
 
@@ -243,13 +361,9 @@ void *execute_transaction(void *arg) {
             }
 
             default:
-                tx->status = TX_ABORTED;
-
-                pthread_mutex_lock(&tick_lock);
-                tx->actual_end = global_tick;
-                pthread_mutex_unlock(&tick_lock);
-
                 fprintf(stderr, "T%d: unknown operation type\n", tx->tx_id);
+                abort_transaction(tx, loaded_accounts, loaded_count,
+                                  "unknown operation type, transaction aborted");
                 return NULL;
         }
 
@@ -261,10 +375,8 @@ void *execute_transaction(void *arg) {
         tx->wait_ticks += (tick_after - tick_before);
     }
 
-    pthread_mutex_lock(&tick_lock);
-    tx->actual_end = global_tick;
-    pthread_mutex_unlock(&tick_lock);
-
+    record_transaction_end(tx);
     tx->status = TX_COMMITTED;
+    unload_transaction_accounts(loaded_accounts, loaded_count);
     return NULL;
 }
