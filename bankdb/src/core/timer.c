@@ -30,10 +30,17 @@ void init_timer() {
 void *timer_thread(void *arg) {
     (void) arg;
 
-    while (simulation_running) {
+    while (true) {
         usleep(tick_interval_ms * 1000);
 
         pthread_mutex_lock(&tick_lock);
+
+        if (!simulation_running) {
+            pthread_cond_broadcast(&tick_changed);
+            pthread_mutex_unlock(&tick_lock);
+            break;
+        }
+
         global_tick++;
         pthread_cond_broadcast(&tick_changed);
         pthread_mutex_unlock(&tick_lock);

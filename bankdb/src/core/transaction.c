@@ -221,6 +221,17 @@ void *execute_transaction(void *arg) {
             case OP_BALANCE: {
                 int balance = get_balance(&bank, op->account_id);
 
+                if (balance < 0) {
+                    tx->status = TX_ABORTED;
+
+                    pthread_mutex_lock(&tick_lock);
+                    tx->actual_end = global_tick;
+                    pthread_mutex_unlock(&tick_lock);
+
+                    debug_log("T%d: BALANCE failed, transaction aborted\n", tx->tx_id);
+                    return NULL;
+                }
+
                 printf("T%d: Account %d balance = PHP %d.%02d\n",
                        tx->tx_id,
                        op->account_id,

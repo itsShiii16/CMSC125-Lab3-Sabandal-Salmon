@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <string.h>
 
 #include "bank.h"
+#include "metrics.h"
 #include "parser.h"
 #include "timer.h"
 #include "transaction.h"
@@ -32,7 +34,7 @@ typedef struct {
 static void print_usage(const char *program_name) {
     fprintf(stderr,
         "Usage: %s --accounts=FILE --trace=FILE "
-        "--deadlock=prevention|detection [--tick-ms=N] [--verbose]\n",
+        "--deadlock=prevention [--tick-ms=N] [--verbose]\n",
         program_name
     );
 }
@@ -74,8 +76,8 @@ static bool parse_args(int argc, char *argv[], Config *config) {
         return false;
     }
 
-    if (strcmp(config->deadlock_mode, "prevention") != 0 &&
-        strcmp(config->deadlock_mode, "detection") != 0) {
+    if (strcmp(config->deadlock_mode, "prevention") != 0) {
+        fprintf(stderr, "Only deadlock prevention is supported in Phase 2.\n");
         return false;
     }
 
@@ -87,16 +89,22 @@ static bool parse_args(int argc, char *argv[], Config *config) {
 }
 
 /*
- * Starter main program:
+ * Program entry point.
  * - parses CLI args
  * - loads accounts
  * - initializes account locks
  * - parses transactions
  * - initializes timer
+ * - runs one thread per transaction
+ * - prints Phase 2 metrics and cleans up resources
  */
 int main(int argc, char *argv[]) {
     Config config;
     Transaction transactions[MAX_TRANSACTIONS];
+    pthread_t timer_thread_id;
+    long initial_total = 0;
+    int timer_started = 0;
+    int exit_code = EXIT_FAILURE;
 
     if (!parse_args(argc, argv, &config)) {
         print_usage(argv[0]);
@@ -114,43 +122,63 @@ int main(int argc, char *argv[]) {
     }
 
     init_account_locks(&bank);
+    initial_total = compute_total_balance(&bank);
 
     int num_transactions = parse_trace_file(config.trace_file, transactions);
     if (num_transactions < 0) {
         fprintf(stderr, "Failed to parse trace file.\n");
-        destroy_account_locks(&bank);
-        return EXIT_FAILURE;
+        goto cleanup_bank;
     }
 
     init_timer();
 
-    // Start the timer thread to increment the global tick
-    pthread_t timer_thread_id;
+    /* Start the timer thread to increment the global tick. */
     simulation_running = true;
-    pthread_create(&timer_thread_id, NULL, timer_thread, NULL);
+    if (pthread_create(&timer_thread_id, NULL, timer_thread, NULL) != 0) {
+        fprintf(stderr, "Failed to create timer thread.\n");
+        goto cleanup_timer;
+    }
+    timer_started = 1;
 
-    // Start transaction threads
-    pthread_t transaction_threads[num_transactions];
+    /* Start one worker thread per parsed transaction. */
     for (int i = 0; i < num_transactions; i++) {
-        pthread_create(&transaction_threads[i], NULL, execute_transaction, &transactions[i]);
+        if (pthread_create(&transactions[i].thread, NULL,
+                           execute_transaction, &transactions[i]) != 0) {
+            fprintf(stderr, "Failed to create transaction thread T%d.\n",
+                    transactions[i].tx_id);
+            transactions[i].status = TX_ABORTED;
+        }
     }
 
-    // Wait for all transaction threads to finish
+    /* Wait for all transaction threads that were successfully started. */
     for (int i = 0; i < num_transactions; i++) {
-        pthread_join(transaction_threads[i], NULL);
+        if (transactions[i].thread != 0) {
+            pthread_join(transactions[i].thread, NULL);
+        }
     }
 
-    // Stop timer thread
+    /* Stop the timer thread after all transactions have completed. */
+    pthread_mutex_lock(&tick_lock);
     simulation_running = false;
-    pthread_join(timer_thread_id, NULL);
+    pthread_cond_broadcast(&tick_changed);
+    pthread_mutex_unlock(&tick_lock);
 
-    // Print metrics and summary
+    if (timer_started) {
+        pthread_join(timer_thread_id, NULL);
+    }
+
+    /* Print the Phase 2 execution summary. */
     print_summary(transactions, num_transactions, global_tick);
     print_transaction_metrics(transactions, num_transactions);
-    print_buffer_pool_report(&bank);
+    print_buffer_pool_report(NULL);
+    verify_balance_conservation(&bank, initial_total);
 
+    exit_code = EXIT_SUCCESS;
+
+cleanup_timer:
     destroy_timer();
+cleanup_bank:
     destroy_account_locks(&bank);
 
-    return EXIT_SUCCESS;
+    return exit_code;
 }

@@ -10,7 +10,7 @@
  * This prevents deadlocks by ensuring a consistent lock ordering.
  */
 bool lock_accounts_in_order(Account *acc1, Account *acc2) {
-    if (acc1 == NULL || acc2 == NULL) {
+    if (!validate_accounts(acc1, acc2)) {
         return false;
     }
 
