@@ -268,17 +268,13 @@ void *execute_transaction(void *arg) {
 
     pthread_mutex_lock(&tick_lock);
     tx->actual_start = global_tick;
+    tx->wait_ticks = tx->actual_start - tx->start_tick;
     pthread_mutex_unlock(&tick_lock);
 
     tx->status = TX_RUNNING;
 
     for (int i = 0; i < tx->num_ops; i++) {
         Operation *op = &tx->ops[i];
-
-        int tick_before;
-        pthread_mutex_lock(&tick_lock);
-        tick_before = global_tick;
-        pthread_mutex_unlock(&tick_lock);
 
         switch (op->type) {
             case OP_DEPOSIT:
@@ -367,12 +363,6 @@ void *execute_transaction(void *arg) {
                 return NULL;
         }
 
-        int tick_after;
-        pthread_mutex_lock(&tick_lock);
-        tick_after = global_tick;
-        pthread_mutex_unlock(&tick_lock);
-
-        tx->wait_ticks += (tick_after - tick_before);
     }
 
     record_transaction_end(tx);

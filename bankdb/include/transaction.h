@@ -66,7 +66,7 @@ typedef enum {
  *   Tick values recorded during runtime for metrics.
  *
  * wait_ticks:
- *   Total ticks spent waiting, usually due to locks or scheduling delays.
+ *   Total ticks spent waiting to begin, based on scheduled vs actual start.
  *
  * status:
  *   Final execution status of the transaction.
