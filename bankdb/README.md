@@ -57,6 +57,9 @@ bankdb/
 
 - make debug
 
+Note: In this environment, ThreadSanitizer fails at runtime with
+"unexpected memory mapping". See docs/tsan_outputs_2026-05-13.txt.
+
 ### Clean Build Files
 
 - make clean
@@ -81,6 +84,10 @@ The system supports the following test scenarios:
 - trace_deadlock.txt — Deadlock scenario
 - trace_abort.txt — Insufficient funds
 - trace_buffer.txt — Buffer pool saturation
+- trace_stress_buffer.txt — Buffer pool stress
+- trace_stress_mix.txt — Mixed operation stress
+
+Manual test outputs are saved in docs/test_outputs_2026-05-13.txt.
 
 ## Output
 
@@ -94,6 +101,7 @@ The system produces:
 - Fixed maximum number of accounts
 - No persistent storage (in-memory only)
 - Deadlock detection strategy not implemented (if using prevention)
+- ThreadSanitizer runtime failure in this environment
 
 ## Authors
 Sherwin Paul Sabandal
