@@ -23,11 +23,16 @@
  *
  * in_use:
  *   Indicates whether this slot is currently occupied
+ *
+ * pin_count:
+ *   Number of active transactions currently using this loaded account.
+ *   The slot is released only when the count returns to zero.
  */
 typedef struct {
     int account_id;
     Account *data;
     bool in_use;
+    int pin_count;
 } BufferSlot;
 
 /*
