@@ -1,5 +1,6 @@
 #include "buffer_pool.h"
 
+#include <errno.h>
 #include <stddef.h>
 
 /*
@@ -35,6 +36,7 @@ void init_buffer_pool(BufferPool *pool) {
 
     pool->load_count = 0;
     pool->unload_count = 0;
+    pool->blocked_count = 0;
     pool->current_usage = 0;
     pool->peak_usage = 0;
 }
@@ -62,7 +64,14 @@ void load_account(BufferPool *pool, Account *account) {
     }
     pthread_mutex_unlock(&pool->pool_lock);
 
-    sem_wait(&pool->empty_slots);
+    if (sem_trywait(&pool->empty_slots) != 0) {
+        if (errno == EAGAIN) {
+            pthread_mutex_lock(&pool->pool_lock);
+            pool->blocked_count++;
+            pthread_mutex_unlock(&pool->pool_lock);
+        }
+        sem_wait(&pool->empty_slots);
+    }
     pthread_mutex_lock(&pool->pool_lock);
 
     for (int i = 0; i < BUFFER_POOL_SIZE; i++) {

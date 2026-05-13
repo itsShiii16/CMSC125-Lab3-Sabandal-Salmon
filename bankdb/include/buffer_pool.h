@@ -53,6 +53,7 @@ typedef struct {
  * stats (optional but useful for metrics):
  *   load_count: total loads performed
  *   unload_count: total unloads performed
+ *   blocked_count: number of times a load had to wait for space
  *   peak_usage: max simultaneous slots used
  */
 typedef struct {
@@ -65,6 +66,7 @@ typedef struct {
 
     int load_count;
     int unload_count;
+    int blocked_count;
     int current_usage;
     int peak_usage;
 } BufferPool;

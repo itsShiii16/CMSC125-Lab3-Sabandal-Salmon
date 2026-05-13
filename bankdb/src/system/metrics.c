@@ -103,6 +103,7 @@ void print_buffer_pool_report(BufferPool *pool) {
 
     printf("Loads       : %d\n", pool->load_count);
     printf("Unloads     : %d\n", pool->unload_count);
+    printf("Blocked     : %d\n", pool->blocked_count);
     printf("Current use : %d\n", pool->current_usage);
     printf("Peak use    : %d\n", pool->peak_usage);
 }
