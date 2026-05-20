@@ -117,12 +117,6 @@ bool withdraw(Bank *bank, int account_id, int amount_centavos);
 bool transfer(Bank *bank, int from_id, int to_id, int amount_centavos);
 
 /*
- * Computes the total balance across all accounts.
- * Used for verifying money conservation.
- */
-long compute_total_balance(Bank *bank);
-
-/*
  * Initializes all account locks.
  * Should be called after loading accounts.
  */
