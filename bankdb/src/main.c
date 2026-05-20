@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <string.h>
+#include <errno.h>
+#include <limits.h>
 
 #include "bank.h"
 #include "buffer_pool.h"
@@ -47,6 +49,29 @@ static void print_usage(const char *program_name) {
 }
 
 /*
+ * Parses a positive millisecond tick interval.
+ */
+static bool parse_tick_ms(const char *value, int *tick_ms) {
+    char *endptr = NULL;
+    long parsed;
+
+    if (value == NULL || *value == '\0' || tick_ms == NULL) {
+        return false;
+    }
+
+    errno = 0;
+    parsed = strtol(value, &endptr, 10);
+
+    if (errno != 0 || endptr == value || *endptr != '\0' ||
+        parsed <= 0 || parsed > INT_MAX) {
+        return false;
+    }
+
+    *tick_ms = (int) parsed;
+    return true;
+}
+
+/*
  * Parses command-line arguments into the Config struct.
  * Returns true on success, false on invalid or missing required arguments.
  */
@@ -69,7 +94,9 @@ static bool parse_args(int argc, char *argv[], Config *config) {
         } else if (strncmp(argv[i], "--deadlock=", 11) == 0) {
             config->deadlock_mode = argv[i] + 11;
         } else if (strncmp(argv[i], "--tick-ms=", 10) == 0) {
-            config->tick_ms = atoi(argv[i] + 10);
+            if (!parse_tick_ms(argv[i] + 10, &config->tick_ms)) {
+                return false;
+            }
         } else if (strcmp(argv[i], "--verbose") == 0) {
             config->verbose = 1;
         } else {
