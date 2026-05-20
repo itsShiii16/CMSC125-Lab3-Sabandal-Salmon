@@ -32,7 +32,7 @@ The system demonstrates real-world concurrency challenges including:
 - Transaction timing (start, end, wait time)
 - Throughput calculation
 - Buffer pool usage statistics
-- Balance conservation verification
+- Balance conservation verification using committed deposit/withdraw external flow
 
 ---
 
@@ -84,10 +84,14 @@ The system supports the following test scenarios:
 - trace_deadlock.txt — Deadlock scenario
 - trace_abort.txt — Insufficient funds
 - trace_buffer.txt — Buffer pool saturation
+- trace_buffer_blocking.txt — Reliable buffer pool blocking evidence
 - trace_stress_buffer.txt — Buffer pool stress
 - trace_stress_mix.txt — Mixed operation stress
 
 Manual test outputs are saved in docs/test_outputs_2026-05-13.txt.
+ThreadSanitizer build/runtime output is saved in docs/tsan_outputs_2026-05-13.txt.
+The current environment reports `FATAL: ThreadSanitizer: unexpected memory mapping`,
+so the TSan evidence is an honest failure log rather than a zero-warning pass.
 
 ## Output
 
@@ -109,4 +113,3 @@ Antonio Gabriel Salmon
 
 ## Notes
 This project is part of CMSC 125 (Operating Systems) and focuses on concurrency, synchronization, and systems-level programming using POSIX threads.
-

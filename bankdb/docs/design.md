@@ -112,6 +112,9 @@ Simulates limited system resources using a bounded buffer model.
 
 ### 4.4 Behavior When Full
 - Transactions block until a buffer slot becomes available
+- `tests/trace_buffer_blocking.txt` starts six reader transactions at tick 1.
+  Five transactions pin accounts 1-5, and the sixth requests account 6 while
+  the pool is full. The saved test output shows `Blocked     : 1`.
 
 ### 4.5 Justification
 This approach provides:
@@ -133,6 +136,21 @@ Each account has its own reader-writer lock.
 ### 5.3 Benefits
 - Improves performance in read-heavy workloads
 - Reduces unnecessary blocking
+
+### 5.4 Measured Lock Comparison
+
+The comparison below used the committed `pthread_rwlock_t` build and a temporary
+copy in `/tmp/bankdb-mutex` where account locks were mechanically changed to
+`pthread_mutex_t`. The same reader trace was used for both runs.
+
+| Lock Strategy | Trace | Total Ticks | Elapsed Runtime | Notes |
+|---|---|---:|---:|---|
+| `pthread_rwlock_t` | `trace_readers.txt` | 0 | 0.01s | Allows concurrent readers |
+| `pthread_mutex_t` temporary build | `trace_readers.txt` | 0 | 0.01s | Serializes account reads |
+
+This small trace does not prove a runtime improvement; it only confirms both
+lock strategies completed the reader-heavy workload successfully in this
+environment.
 
 ---
 
@@ -178,7 +196,9 @@ The system records:
 
 The system ensures:
 - No deadlocks (via prevention strategy)  
-- Conservation of total money across all accounts  
+- Balance conservation using `final_total == initial_total + net_external_flow`,
+  where committed deposits add to external flow, committed withdrawals subtract
+  from it, and transfers do not change it.
 
 ---
 
@@ -192,7 +212,10 @@ The system ensures:
 ## 10.1 Test Evidence
 
 - Manual test outputs are saved in docs/test_outputs_2026-05-13.txt
-- ThreadSanitizer outputs are saved in docs/tsan_outputs_2026-05-13.txt
+- ThreadSanitizer build/runtime output is saved in docs/tsan_outputs_2026-05-13.txt.
+  In this environment the runtime fails before executing the trace with
+  `FATAL: ThreadSanitizer: unexpected memory mapping`, so this file is not a
+  zero-warning pass.
 
 ---
 
