@@ -63,6 +63,16 @@ Account *get_account(Bank *bank, int account_id) {
         return NULL;
     }
 
+    /*
+     * Common traces load accounts with 1-based sequential IDs. Check that
+     * direct slot first, then fall back to the packed-array scan for arbitrary
+     * valid account IDs.
+     */
+    if (account_id > 0 && account_id <= bank->num_accounts &&
+        bank->accounts[account_id - 1].account_id == account_id) {
+        return &bank->accounts[account_id - 1];
+    }
+
     for (int i = 0; i < bank->num_accounts; i++) {
         if (bank->accounts[i].account_id == account_id) {
             return &bank->accounts[i];
