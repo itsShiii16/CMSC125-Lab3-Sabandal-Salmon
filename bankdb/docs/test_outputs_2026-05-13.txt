@@ -1,6 +1,16 @@
+gcc -Wall -Wextra -pthread -O2 -Iinclude -c src/concurrency/buffer_pool.c -o src/concurrency/buffer_pool.o
+gcc -Wall -Wextra -pthread -O2 -Iinclude -c src/concurrency/lock_mgr.c -o src/concurrency/lock_mgr.o
+gcc -Wall -Wextra -pthread -O2 -Iinclude -c src/core/bank.c -o src/core/bank.o
+gcc -Wall -Wextra -pthread -O2 -Iinclude -c src/core/timer.c -o src/core/timer.o
+gcc -Wall -Wextra -pthread -O2 -Iinclude -c src/core/transaction.c -o src/core/transaction.o
+gcc -Wall -Wextra -pthread -O2 -Iinclude -c src/main.c -o src/main.o
+gcc -Wall -Wextra -pthread -O2 -Iinclude -c src/system/metrics.c -o src/system/metrics.o
+gcc -Wall -Wextra -pthread -O2 -Iinclude -c src/system/parser.c -o src/system/parser.o
+gcc -Wall -Wextra -pthread -O2 -Iinclude -c src/utils/utils.c -o src/utils/utils.o
+gcc -Wall -Wextra -pthread -O2 src/concurrency/buffer_pool.o src/concurrency/lock_mgr.o src/core/bank.o src/core/timer.o src/core/transaction.o src/main.o src/system/metrics.o src/system/parser.o src/utils/utils.o -o bankdb
 Running tests/trace_simple.txt
-T4: Account 2 balance = PHP 110.00
 T3: Account 1 balance = PHP 95.00
+T4: Account 2 balance = PHP 110.00
 
 === BankDB Summary ===
 Transactions : 4
@@ -32,10 +42,10 @@ Final total       : 80500
 Result            : PASS
 Running tests/trace_readers.txt
 T1: Account 1 balance = PHP 100.00
-T4: Account 2 balance = PHP 100.00
-T5: Account 2 balance = PHP 100.00
 T3: Account 1 balance = PHP 100.00
 T2: Account 1 balance = PHP 100.00
+T5: Account 2 balance = PHP 100.00
+T4: Account 2 balance = PHP 100.00
 
 === BankDB Summary ===
 Transactions : 5
@@ -54,11 +64,11 @@ T4     0          0            0          0          COMMITTED
 T5     0          0            0          0          COMMITTED 
 
 === Buffer Pool Report ===
-Loads       : 3
-Unloads     : 3
+Loads       : 5
+Unloads     : 5
 Blocked     : 0
 Current use : 0
-Peak use    : 2
+Peak use    : 1
 
 === Balance Check ===
 Initial total     : 80000
@@ -183,87 +193,87 @@ T1: Account 1 balance = PHP 100.00
 T1: Account 1 balance = PHP 100.00
 T1: Account 1 balance = PHP 100.00
 T1: Account 1 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
 T6: Account 6 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T4: Account 4 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T3: Account 3 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T5: Account 5 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
-T2: Account 2 balance = PHP 100.00
 
 === BankDB Summary ===
 Transactions : 6
@@ -302,8 +312,8 @@ T3: Account 3 balance = PHP 100.00
 T4: Account 4 balance = PHP 100.00
 T5: Account 5 balance = PHP 100.00
 T6: Account 6 balance = PHP 100.00
-T8: Account 8 balance = PHP 100.00
 T7: Account 7 balance = PHP 100.00
+T8: Account 8 balance = PHP 100.00
 
 === BankDB Summary ===
 Transactions : 8
@@ -329,7 +339,7 @@ Loads       : 8
 Unloads     : 8
 Blocked     : 0
 Current use : 0
-Peak use    : 2
+Peak use    : 3
 
 === Balance Check ===
 Initial total     : 80000
@@ -340,9 +350,9 @@ Result            : PASS
 Running tests/trace_stress_mix.txt
 T1: Account 1 balance = PHP 95.00
 T2: Account 2 balance = PHP 98.00
-T5: Account 6 balance = PHP 105.00
-T8: Account 8 balance = PHP 100.00
+T5: Account 6 balance = PHP 109.00
 T7: Account 7 balance = PHP 100.00
+T8: Account 8 balance = PHP 100.00
 T12: Account 4 balance = PHP 103.00
 
 === BankDB Summary ===
