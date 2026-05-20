@@ -1,6 +1,7 @@
 #include "buffer_pool.h"
 
 #include <errno.h>
+#include <sched.h>
 #include <stddef.h>
 
 /*
@@ -48,6 +49,7 @@ void init_buffer_pool(BufferPool *pool) {
  */
 void load_account(BufferPool *pool, Account *account) {
     bool inserted = false;
+    bool pool_is_full = false;
 
     if (pool == NULL || account == NULL) {
         return;
@@ -95,6 +97,9 @@ void load_account(BufferPool *pool, Account *account) {
             if (pool->current_usage > pool->peak_usage) {
                 pool->peak_usage = pool->current_usage;
             }
+            if (pool->current_usage == BUFFER_POOL_SIZE) {
+                pool_is_full = true;
+            }
             inserted = true;
             break;
         }
@@ -104,6 +109,9 @@ void load_account(BufferPool *pool, Account *account) {
 
     if (inserted) {
         sem_post(&pool->full_slots);
+        if (pool_is_full) {
+            sched_yield();
+        }
     } else {
         sem_post(&pool->empty_slots);
     }
