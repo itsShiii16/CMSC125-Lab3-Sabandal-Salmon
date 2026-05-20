@@ -1,0 +1,2 @@
+gcc -Wall -Wextra -pthread -O1 -g -fsanitize=thread -Iinclude src/concurrency/buffer_pool.c src/concurrency/lock_mgr.c src/core/bank.c src/core/timer.c src/core/transaction.c src/main.c src/system/metrics.c src/system/parser.c src/utils/utils.c -o bankdb-debug
+FATAL: ThreadSanitizer: unexpected memory mapping 0x601eabd09000-0x601eabd0b000

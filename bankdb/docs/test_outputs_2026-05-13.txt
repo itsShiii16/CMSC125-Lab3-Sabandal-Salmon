@@ -1,0 +1,383 @@
+Running tests/trace_simple.txt
+T4: Account 2 balance = PHP 110.00
+T3: Account 1 balance = PHP 95.00
+
+=== BankDB Summary ===
+Transactions : 4
+Committed    : 4
+Aborted      : 0
+Total ticks  : 2
+Avg wait     : 0.00 ticks
+Throughput   : 2.00 tx/tick
+
+=== Transaction Metrics ===
+TxID   Start      ActualStart  End        Wait       Status    
+T1     0          0            0          0          COMMITTED 
+T2     1          1            1          0          COMMITTED 
+T3     2          2            2          0          COMMITTED 
+T4     2          2            2          0          COMMITTED 
+
+=== Buffer Pool Report ===
+Loads       : 5
+Unloads     : 5
+Blocked     : 0
+Current use : 0
+Peak use    : 2
+
+=== Balance Check ===
+Initial total     : 80000
+Net external flow : 500
+Expected total    : 80500
+Final total       : 80500
+Result            : PASS
+Running tests/trace_readers.txt
+T1: Account 1 balance = PHP 100.00
+T4: Account 2 balance = PHP 100.00
+T5: Account 2 balance = PHP 100.00
+T3: Account 1 balance = PHP 100.00
+T2: Account 1 balance = PHP 100.00
+
+=== BankDB Summary ===
+Transactions : 5
+Committed    : 5
+Aborted      : 0
+Total ticks  : 0
+Avg wait     : 0.00 ticks
+Throughput   : 0.00 tx/tick
+
+=== Transaction Metrics ===
+TxID   Start      ActualStart  End        Wait       Status    
+T1     0          0            0          0          COMMITTED 
+T2     0          0            0          0          COMMITTED 
+T3     0          0            0          0          COMMITTED 
+T4     0          0            0          0          COMMITTED 
+T5     0          0            0          0          COMMITTED 
+
+=== Buffer Pool Report ===
+Loads       : 3
+Unloads     : 3
+Blocked     : 0
+Current use : 0
+Peak use    : 2
+
+=== Balance Check ===
+Initial total     : 80000
+Net external flow : 0
+Expected total    : 80000
+Final total       : 80000
+Result            : PASS
+Running tests/trace_deadlock.txt
+T4: Account 2 balance = PHP 100.00
+T3: Account 1 balance = PHP 100.00
+
+=== BankDB Summary ===
+Transactions : 4
+Committed    : 4
+Aborted      : 0
+Total ticks  : 1
+Avg wait     : 0.00 ticks
+Throughput   : 4.00 tx/tick
+
+=== Transaction Metrics ===
+TxID   Start      ActualStart  End        Wait       Status    
+T1     0          0            0          0          COMMITTED 
+T2     0          0            0          0          COMMITTED 
+T3     1          1            1          0          COMMITTED 
+T4     1          1            1          0          COMMITTED 
+
+=== Buffer Pool Report ===
+Loads       : 6
+Unloads     : 6
+Blocked     : 0
+Current use : 0
+Peak use    : 2
+
+=== Balance Check ===
+Initial total     : 80000
+Net external flow : 0
+Expected total    : 80000
+Final total       : 80000
+Result            : PASS
+Running tests/trace_abort.txt
+T2: Account 1 balance = PHP 100.00
+
+=== BankDB Summary ===
+Transactions : 2
+Committed    : 1
+Aborted      : 1
+Total ticks  : 1
+Avg wait     : 0.00 ticks
+Throughput   : 2.00 tx/tick
+
+=== Transaction Metrics ===
+TxID   Start      ActualStart  End        Wait       Status    
+T1     0          0            0          0          ABORTED   
+T2     1          1            1          0          COMMITTED 
+
+=== Buffer Pool Report ===
+Loads       : 2
+Unloads     : 2
+Blocked     : 0
+Current use : 0
+Peak use    : 1
+
+=== Balance Check ===
+Initial total     : 80000
+Net external flow : 0
+Expected total    : 80000
+Final total       : 80000
+Result            : PASS
+Running tests/trace_buffer.txt
+T1: Account 1 balance = PHP 100.00
+T1: Account 2 balance = PHP 100.00
+T1: Account 3 balance = PHP 100.00
+T1: Account 4 balance = PHP 100.00
+T1: Account 5 balance = PHP 100.00
+T2: Account 6 balance = PHP 100.00
+
+=== BankDB Summary ===
+Transactions : 3
+Committed    : 3
+Aborted      : 0
+Total ticks  : 1
+Avg wait     : 0.00 ticks
+Throughput   : 3.00 tx/tick
+
+=== Transaction Metrics ===
+TxID   Start      ActualStart  End        Wait       Status    
+T1     0          0            0          0          COMMITTED 
+T2     0          0            0          0          COMMITTED 
+T3     1          1            1          0          COMMITTED 
+
+=== Buffer Pool Report ===
+Loads       : 8
+Unloads     : 8
+Blocked     : 0
+Current use : 0
+Peak use    : 5
+
+=== Balance Check ===
+Initial total     : 80000
+Net external flow : 0
+Expected total    : 80000
+Final total       : 80000
+Result            : PASS
+Running tests/trace_buffer_blocking.txt
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T1: Account 1 balance = PHP 100.00
+T6: Account 6 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+
+=== BankDB Summary ===
+Transactions : 6
+Committed    : 6
+Aborted      : 0
+Total ticks  : 1
+Avg wait     : 0.00 ticks
+Throughput   : 6.00 tx/tick
+
+=== Transaction Metrics ===
+TxID   Start      ActualStart  End        Wait       Status    
+T1     1          1            1          0          COMMITTED 
+T2     1          1            1          0          COMMITTED 
+T3     1          1            1          0          COMMITTED 
+T4     1          1            1          0          COMMITTED 
+T5     1          1            1          0          COMMITTED 
+T6     1          1            1          0          COMMITTED 
+
+=== Buffer Pool Report ===
+Loads       : 6
+Unloads     : 6
+Blocked     : 1
+Current use : 0
+Peak use    : 5
+
+=== Balance Check ===
+Initial total     : 80000
+Net external flow : 0
+Expected total    : 80000
+Final total       : 80000
+Result            : PASS
+Running tests/trace_stress_buffer.txt
+T1: Account 1 balance = PHP 100.00
+T2: Account 2 balance = PHP 100.00
+T3: Account 3 balance = PHP 100.00
+T4: Account 4 balance = PHP 100.00
+T5: Account 5 balance = PHP 100.00
+T6: Account 6 balance = PHP 100.00
+T8: Account 8 balance = PHP 100.00
+T7: Account 7 balance = PHP 100.00
+
+=== BankDB Summary ===
+Transactions : 8
+Committed    : 8
+Aborted      : 0
+Total ticks  : 0
+Avg wait     : 0.00 ticks
+Throughput   : 0.00 tx/tick
+
+=== Transaction Metrics ===
+TxID   Start      ActualStart  End        Wait       Status    
+T1     0          0            0          0          COMMITTED 
+T2     0          0            0          0          COMMITTED 
+T3     0          0            0          0          COMMITTED 
+T4     0          0            0          0          COMMITTED 
+T5     0          0            0          0          COMMITTED 
+T6     0          0            0          0          COMMITTED 
+T7     0          0            0          0          COMMITTED 
+T8     0          0            0          0          COMMITTED 
+
+=== Buffer Pool Report ===
+Loads       : 8
+Unloads     : 8
+Blocked     : 0
+Current use : 0
+Peak use    : 2
+
+=== Balance Check ===
+Initial total     : 80000
+Net external flow : 0
+Expected total    : 80000
+Final total       : 80000
+Result            : PASS
+Running tests/trace_stress_mix.txt
+T1: Account 1 balance = PHP 95.00
+T2: Account 2 balance = PHP 98.00
+T5: Account 6 balance = PHP 105.00
+T8: Account 8 balance = PHP 100.00
+T7: Account 7 balance = PHP 100.00
+T12: Account 4 balance = PHP 103.00
+
+=== BankDB Summary ===
+Transactions : 12
+Committed    : 12
+Aborted      : 0
+Total ticks  : 3
+Avg wait     : 0.00 ticks
+Throughput   : 4.00 tx/tick
+
+=== Transaction Metrics ===
+TxID   Start      ActualStart  End        Wait       Status    
+T1     0          0            0          0          COMMITTED 
+T2     0          0            0          0          COMMITTED 
+T3     0          0            0          0          COMMITTED 
+T4     0          0            0          0          COMMITTED 
+T5     1          1            1          0          COMMITTED 
+T6     1          1            1          0          COMMITTED 
+T7     2          2            2          0          COMMITTED 
+T8     2          2            2          0          COMMITTED 
+T9     2          2            2          0          COMMITTED 
+T10    2          2            2          0          COMMITTED 
+T11    3          3            3          0          COMMITTED 
+T12    3          3            3          0          COMMITTED 
+
+=== Buffer Pool Report ===
+Loads       : 17
+Unloads     : 17
+Blocked     : 0
+Current use : 0
+Peak use    : 2
+
+=== Balance Check ===
+Initial total     : 80000
+Net external flow : 200
+Expected total    : 80200
+Final total       : 80200
+Result            : PASS
