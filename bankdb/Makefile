@@ -12,6 +12,7 @@ TEST_TRACES = \
 	tests/trace_deadlock.txt \
 	tests/trace_abort.txt \
 	tests/trace_buffer.txt \
+	tests/trace_buffer_blocking.txt \
 	tests/trace_stress_buffer.txt \
 	tests/trace_stress_mix.txt
 
