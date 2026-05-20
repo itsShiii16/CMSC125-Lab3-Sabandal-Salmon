@@ -49,10 +49,10 @@ double compute_throughput(int total_transactions, int total_ticks);
 void print_buffer_pool_report(BufferPool *pool);
 
 /*
- * Verifies money conservation:
- * total initial balance == total final balance
+ * Verifies money conservation after external deposits and withdrawals:
+ * final total == initial total + net external flow
  */
-void verify_balance_conservation(Bank *bank, long initial_total);
+void verify_balance_conservation(Bank *bank, long initial_total, long net_external_flow);
 
 /*
  * Computes total balance across all accounts.

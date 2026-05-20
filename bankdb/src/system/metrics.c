@@ -109,26 +109,30 @@ void print_buffer_pool_report(BufferPool *pool) {
 }
 
 /*
- * Compares initial and final total balances for a basic consistency check.
+ * Compares the final balance to the initial balance plus committed external flow.
  * Synchronization: compute_total_balance uses account read locks.
  */
-void verify_balance_conservation(Bank *bank, long initial_total) {
+void verify_balance_conservation(Bank *bank, long initial_total, long net_external_flow) {
     long final_total;
+    long expected_total;
 
     if (bank == NULL) {
         return;
     }
 
     final_total = compute_total_balance(bank);
+    expected_total = initial_total + net_external_flow;
 
     printf("\n=== Balance Check ===\n");
-    printf("Initial total : %ld\n", initial_total);
-    printf("Final total   : %ld\n", final_total);
+    printf("Initial total     : %ld\n", initial_total);
+    printf("Net external flow : %ld\n", net_external_flow);
+    printf("Expected total    : %ld\n", expected_total);
+    printf("Final total       : %ld\n", final_total);
 
-    if (initial_total == final_total) {
-        printf("Result        : PASS\n");
+    if (expected_total == final_total) {
+        printf("Result            : PASS\n");
     } else {
-        printf("Result        : WARN - total changed by deposits/withdrawals\n");
+        printf("Result            : FAIL - balance conservation mismatch\n");
     }
 }
 

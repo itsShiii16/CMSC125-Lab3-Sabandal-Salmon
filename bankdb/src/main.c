@@ -96,6 +96,39 @@ static bool parse_args(int argc, char *argv[], Config *config) {
 }
 
 /*
+ * Computes money entering or leaving the bank from committed transactions.
+ * Transfers are internal movements and do not change total bank balance.
+ */
+static long compute_committed_external_flow(
+    Transaction *transactions,
+    int num_transactions
+) {
+    long net_external_flow = 0;
+
+    if (transactions == NULL || num_transactions <= 0) {
+        return 0;
+    }
+
+    for (int i = 0; i < num_transactions; i++) {
+        if (transactions[i].status != TX_COMMITTED) {
+            continue;
+        }
+
+        for (int j = 0; j < transactions[i].num_ops; j++) {
+            Operation *op = &transactions[i].ops[j];
+
+            if (op->type == OP_DEPOSIT) {
+                net_external_flow += op->amount_centavos;
+            } else if (op->type == OP_WITHDRAW) {
+                net_external_flow -= op->amount_centavos;
+            }
+        }
+    }
+
+    return net_external_flow;
+}
+
+/*
  * Program entry point.
  * - parses CLI args
  * - loads accounts
@@ -110,6 +143,7 @@ int main(int argc, char *argv[]) {
     Transaction transactions[MAX_TRANSACTIONS];
     pthread_t timer_thread_id;
     long initial_total = 0;
+    long net_external_flow = 0;
     int timer_started = 0;
     int exit_code = EXIT_FAILURE;
 
@@ -175,11 +209,16 @@ int main(int argc, char *argv[]) {
         pthread_join(timer_thread_id, NULL);
     }
 
+    net_external_flow = compute_committed_external_flow(
+        transactions,
+        num_transactions
+    );
+
     /* Print the execution summary and buffer pool report. */
     print_summary(transactions, num_transactions, global_tick);
     print_transaction_metrics(transactions, num_transactions);
     print_buffer_pool_report(&buffer_pool);
-    verify_balance_conservation(&bank, initial_total);
+    verify_balance_conservation(&bank, initial_total, net_external_flow);
 
     exit_code = EXIT_SUCCESS;
 
